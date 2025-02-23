@@ -8,6 +8,7 @@ const UserSchema = new mongoose.Schema({
   email: {
     type: String,
     required: true,
+    trim: true,
     unique: true,
   },
   password: {
@@ -16,6 +17,8 @@ const UserSchema = new mongoose.Schema({
   },
   avtar: {
     type: String,
+    default:
+      "https://assambidhansabha.org/assets/uploads/mla/profilepic/member_145.png",
   },
 });
 
