@@ -9,7 +9,7 @@ export default function HomePage() {
         <div className="flex flex-col gap-4 max-w-xl">
           <h1 className="text-3xl md:text-5xl font-bold font-serif text-slate-300 leading-none text-center">
             <span className="text-4xl md:text-6xl text-blue-600">Webuzz</span>,
-            here
+            where
             <br /> conversations flow!
           </h1>
           <p className="text-lg text-center font-medium text-slate-300">
