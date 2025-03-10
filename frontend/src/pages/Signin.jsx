@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { axiosInstance } from "../utils/constants";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { Link } from "react-router-dom";
 
 // Toast notification configuration
 const toastOptions = {
@@ -103,10 +104,15 @@ export default function Signin() {
           >
             {loading ? "Signing in..." : "Sign In"}
           </button>
+          <p className="text-indigo-100 text-sm">
+            Don't have an account?{" "}
+            <Link to="/signup">
+              <span className="hover:underline cursor-pointer hover:text-indigo-500">
+                Signup
+              </span>
+            </Link>
+          </p>
         </div>
-
-        {/* Error Message */}
-        {error && <p className="text-red-600 text-sm">{error}</p>}
       </form>
 
       {/* Toast Container (Required for toast notifications) */}
