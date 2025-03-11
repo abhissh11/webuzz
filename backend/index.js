@@ -2,8 +2,9 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
-import authRouter from "./routes/auth-route.js";
 import { connectDB } from "./config/db.js";
+import authRouter from "./routes/auth-route.js";
+import userRouter from "./routes/user-route.js";
 
 dotenv.config();
 
@@ -30,6 +31,7 @@ app.get("/", (req, res) => {
   res.send("Hello from webuzz server");
 });
 app.use("/api/auth", authRouter);
+app.use("/api", userRouter);
 
 const PORT = process.env.PORT || 5000;
 
