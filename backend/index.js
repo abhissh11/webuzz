@@ -6,6 +6,7 @@ import { connectDB } from "./config/db.js";
 import authRouter from "./routes/auth-route.js";
 import userRouter from "./routes/user-route.js";
 import messageRouter from "./routes/message-route.js";
+import chatRouter from "./routes/chat-route.js";
 import { createServer } from "http";
 import { Server } from "socket.io";
 
@@ -44,6 +45,7 @@ app.get("/", (req, res) => {
 app.use("/api/auth", authRouter);
 app.use("/api", userRouter);
 app.use("/api", messageRouter);
+app.use("/api/chat", chatRouter);
 
 const PORT = process.env.PORT || 5000;
 
