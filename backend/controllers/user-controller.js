@@ -3,7 +3,12 @@ import User from "../models/user-model.js";
 
 export const getUsers = async (req, res) => {
   try {
-    const users = await User.find({}, "-password");
+    const excludeId = req.query.exclude;
+
+    // const users = await User.find({}, "-password");
+    const users = excludeId
+      ? await User.find({ _id: { $ne: excludeId } }, "-password")
+      : await User.find({}, "-password");
     res.status(200).json(users);
   } catch (error) {
     console.error("Error fetching users: ", error);

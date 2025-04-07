@@ -2,7 +2,9 @@ import React, { useState } from "react";
 import { axiosInstance } from "../utils/constants";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { setUser } from "../redux/slices/authSlice";
 
 // Toast notification configuration
 const toastOptions = {
@@ -20,6 +22,9 @@ export default function Signin() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
   // Handle input change dynamically
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -35,8 +40,9 @@ export default function Signin() {
       const res = await axiosInstance.post("/auth/signin", formData);
       const { user } = res.data;
       console.log({ user });
-
+      dispatch(setUser(user));
       toast.success("Signin Successful!", toastOptions);
+      navigate("/chat");
 
       // Reset fields on success
       setFormData({ email: "", password: "" });

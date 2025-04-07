@@ -13,10 +13,10 @@ import { Server } from "socket.io";
 dotenv.config();
 
 const app = express();
-const server = createServer(app); //create http server
+const server = createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:3000", "http://localhost:5173"], // Allow frontend origins
+    origin: ["http://localhost:3000", "http://localhost:5173"],
     methods: ["GET", "POST"],
     credentials: true,
   },
@@ -55,7 +55,7 @@ const startServer = async () => {
     await connectDB();
     console.log("database connected successfully");
 
-    app.listen(PORT, () => {
+    server.listen(PORT, () => {
       console.log(`Server running on PORT : ${PORT}`);
     });
   } catch (error) {
@@ -83,7 +83,7 @@ io.on("connection", (socket) => {
   });
 
   //handle user disconnection
-  socket.io("disconnect", () => {
+  socket.on("disconnect", () => {
     console.log("A user disconnected: ", socket.id);
   });
 });
