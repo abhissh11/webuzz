@@ -1,113 +1,126 @@
-import React, { useEffect, useRef, useState } from "react";
-import { SendHorizonal } from "lucide-react";
-import socket from "../utils/socket";
+import React, { useEffect, useState, useRef } from "react";
+import { Send } from "lucide-react";
 import { axiosInstance } from "../utils/constants";
+import socket from "../utils/socket";
 import { getLoggedInUser } from "../utils/getLoggedinUser";
 
-export default function ChatUI({ activeUser }) {
+export default function ChatUI({
+  activeUser,
+  currentChat,
+  messages,
+  setMessages,
+}) {
   const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState([]);
   const messagesEndRef = useRef(null);
+  const loggedInUser = getLoggedInUser();
+  const userId = loggedInUser?._id;
 
-  const user = getLoggedInUser();
-
-  const userId = user && user._id;
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
   useEffect(() => {
-    if (!activeUser || !userId) return;
+    scrollToBottom();
+  }, [messages]);
 
-    const fetchMessages = async () => {
-      try {
-        const res = await axiosInstance.get(
-          `/messages/${userId}/${activeUser._id}`
-        );
-        setMessages(res.data);
-      } catch (err) {
-        console.error("Failed to fetch messages");
-      }
-    };
+  // ✅ Join the chat room when currentChat changes
+  useEffect(() => {
+    if (currentChat?._id) {
+      socket.emit("joinChat", currentChat._id);
+    }
+  }, [currentChat?._id]);
 
-    fetchMessages();
-
-    socket.emit("joinRoom", userId);
-
+  // ✅ Listen for real-time incoming messages
+  useEffect(() => {
     const handleReceiveMessage = (newMessage) => {
-      const isCurrentChat =
-        (newMessage.senderId === userId &&
-          newMessage.receiverId === activeUser._id) ||
-        (newMessage.senderId === activeUser._id &&
-          newMessage.receiverId === userId);
-
-      if (isCurrentChat) {
+      if (newMessage.chat._id === currentChat?._id) {
         setMessages((prev) => [...prev, newMessage]);
       }
     };
 
-    socket.on("receiveMessage", handleReceiveMessage);
+    socket.on("messageReceived", handleReceiveMessage);
 
     return () => {
-      socket.off("receiveMessage", handleReceiveMessage);
+      socket.off("messageReceived", handleReceiveMessage);
     };
-  }, [activeUser, userId]);
+  }, [currentChat, setMessages]);
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
-  const handleSendMessage = () => {
-    if (!message.trim()) return;
+  const handleSendMessage = async () => {
+    if (!message.trim() || !activeUser || !userId || !currentChat?._id) return;
 
     const newMessage = {
+      chatId: currentChat._id,
       senderId: userId,
       receiverId: activeUser._id,
-      message,
+      content: message,
     };
 
-    socket.emit("sendMessage", newMessage);
-    setMessages((prev) => [...prev, newMessage]);
-    setMessage("");
+    try {
+      const res = await axiosInstance.post("/messages", newMessage);
+
+      setMessages((prev) => [...prev, res.data]);
+      setMessage("");
+      socket.emit("newMessage", res.data);
+    } catch (error) {
+      console.error(
+        "Error sending message:",
+        error.response?.data || error.message
+      );
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
   };
 
   return (
-    <div className="w-full h-full flex flex-col justify-between">
-      <h2 className="px-4 py-3 bg-indigo-800 rounded-xl rounded-b-none text-white font-semibold">
-        {activeUser?.username || "Select a user to chat"}
-      </h2>
+    <div className="flex flex-col h-full">
+      <div className="bg-indigo-900 p-3 text-white font-semibold rounded-lg shadow mb-2">
+        {activeUser
+          ? `Chatting with ${activeUser.username}`
+          : "Select a user to start chatting"}
+      </div>
 
-      <div className="flex-1 overflow-y-auto p-4">
-        {messages.map((msg, index) => (
-          <div
-            key={index}
-            className={`my-2 max-w-xs p-2 rounded-lg text-white ${
-              msg.senderId === userId
-                ? "bg-indigo-700 ml-auto"
-                : "bg-teal-700 mr-auto"
-            }`}
-          >
-            <p>{msg.message}</p>
-          </div>
-        ))}
+      <div className="flex-1 overflow-y-auto space-y-2 px-4">
+        {messages.length === 0 && (
+          <p className="text-center text-gray-400 mt-10">No messages yet</p>
+        )}
+        {messages.map((msg, idx) => {
+          const isOwn = msg.sender?._id === userId || msg.senderId === userId;
+          return (
+            <div
+              key={idx}
+              className={`p-2 rounded-xl max-w-sm ${
+                isOwn
+                  ? "bg-blue-600 text-white self-end ml-auto"
+                  : "bg-teal-600 text-white self-start mr-auto"
+              }`}
+            >
+              {msg.content?.message || msg.content}
+            </div>
+          );
+        })}
         <div ref={messagesEndRef} />
       </div>
 
       {activeUser && (
-        <div className="w-full flex gap-2 justify-between p-4">
-          <input
-            placeholder="Type your message..."
+        <div className="mt-auto flex items-center gap-2 pt-4">
+          <textarea
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            className="w-full rounded-lg px-6 text-gray-200 bg-indigo-950 outline-none border-indigo-900"
-            onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
+            onKeyDown={handleKeyDown}
+            rows={1}
+            placeholder="Type a message..."
+            className="w-full rounded-lg p-2 px-4 text-blue-950 resize-none border border-indigo-300 focus:outline-none"
           />
           <button
             onClick={handleSendMessage}
-            className="group flex gap-1 items-center text-lg semibold px-6 py-3 rounded-lg bg-indigo-800 hover:bg-indigo-700"
+            className="bg-indigo-600 p-2 rounded-lg text-white hover:bg-indigo-700"
           >
-            Send
-            <SendHorizonal
-              size={24}
-              className="group-hover:-rotate-45 transition-all duration-75"
-            />
+            <Send />
           </button>
         </div>
       )}

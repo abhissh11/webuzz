@@ -6,6 +6,7 @@ import About from "./pages/About";
 import Chatroom from "./pages/Chatroom";
 import Signin from "./pages/Signin";
 import Signup from "./pages/Signup";
+import ChatPage from "./pages/ChatPage";
 
 export default function App() {
   return (
@@ -15,6 +16,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<HomePage />}></Route>
           <Route path="/chat" element={<Chatroom />}></Route>
+          <Route path="/chatroom" element={<ChatPage />}></Route>
           <Route path="/signin" element={<Signin />}></Route>
           <Route path="/signup" element={<Signup />}></Route>
           <Route path="/about" element={<About />}></Route>
