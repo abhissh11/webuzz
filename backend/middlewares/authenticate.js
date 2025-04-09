@@ -2,6 +2,8 @@ import jwt from "jsonwebtoken";
 
 export const protect = (req, res, next) => {
   // Ensure cookies exist before accessing them
+  console.log("Incoming Cookies:", req.cookies);
+
   if (!req.cookies || !req.cookies.accessToken) {
     return res.status(401).json({ message: "Access token is missing" });
   }

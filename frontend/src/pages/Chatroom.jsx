@@ -114,7 +114,11 @@ export default function Chatroom() {
 
   const handleUserClick = async (user) => {
     try {
-      const res = await axiosInstance.post("/chat", { userId: user._id });
+      const res = await axiosInstance.post(
+        "/chat",
+        { userId: user._id },
+        { withCredentials: true }
+      );
       setCurrentChat(res.data);
       setActiveUser(user);
       setIsTyping(false);
