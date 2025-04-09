@@ -46,6 +46,7 @@ app.use(
 app.options("*", cors());
 app.use(express.json());
 app.use(cookieParser());
+app.set("trust proxy", 1);
 
 // Routes
 app.get("/", (req, res) => {

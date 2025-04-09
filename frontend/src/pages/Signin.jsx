@@ -39,7 +39,6 @@ export default function Signin() {
     try {
       const res = await axiosInstance.post("/auth/signin", formData);
       const { user } = res.data;
-      console.log({ user });
       dispatch(setUser(user));
       toast.success("Signin Successful!", toastOptions);
       navigate("/chat");
