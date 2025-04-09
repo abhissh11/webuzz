@@ -23,14 +23,12 @@ export default function ChatUI({
     scrollToBottom();
   }, [messages]);
 
-  // ✅ Join the chat room when currentChat changes
   useEffect(() => {
     if (currentChat?._id) {
       socket.emit("joinChat", currentChat._id);
     }
   }, [currentChat?._id]);
 
-  // ✅ Listen for real-time incoming messages
   useEffect(() => {
     const handleReceiveMessage = (newMessage) => {
       if (newMessage.chat._id === currentChat?._id) {
@@ -58,7 +56,6 @@ export default function ChatUI({
     try {
       const res = await axiosInstance.post("/messages", newMessage);
 
-      setMessages((prev) => [...prev, res.data]);
       setMessage("");
       socket.emit("newMessage", res.data);
     } catch (error) {

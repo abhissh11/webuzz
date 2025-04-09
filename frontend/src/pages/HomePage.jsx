@@ -1,37 +1,83 @@
-import { MoveRight } from "lucide-react";
 import React from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { MessageCircle, Users, BellRing, MessageSquare } from "lucide-react";
 
-export default function HomePage() {
+export default function Homepage() {
+  const navigate = useNavigate();
+
+  const handleStartChat = () => {
+    navigate("/chat");
+  };
+
+  const features = [
+    {
+      icon: <MessageCircle className="w-8 h-8 text-indigo-300" />,
+      title: "One-on-One Chat",
+      description:
+        "Have private, secure conversations with anyone in your network.",
+    },
+    {
+      icon: <Users className="w-8 h-8 text-indigo-300" />,
+      title: "Group Chats",
+      description:
+        "Create and manage group conversations for teams, friends, or communities.",
+    },
+    {
+      icon: <MessageSquare className="w-8 h-8 text-indigo-300" />,
+      title: "Real-Time Messaging",
+      description:
+        "Send and receive messages instantly with Webuzz’s lightning-fast engine.",
+    },
+    {
+      icon: <BellRing className="w-8 h-8 text-indigo-300" />,
+      title: "Typing & Notifications",
+      description:
+        "See when others are typing and get notified of new messages in real time.",
+    },
+  ];
+
   return (
-    <div className="flex justify-center items-center min-h-[70svh] md:min-h-screen mx-4">
-      <div className="flex flex-col gap-16 justify-between items-center">
-        <div className="flex flex-col gap-4 max-w-xl">
-          <h1 className="text-3xl md:text-5xl font-bold font-serif text-slate-300 leading-none text-center">
-            <span className="text-4xl md:text-6xl text-blue-600">Webuzz</span>,
-            where
-            <br /> conversations flow!
-          </h1>
-          <p className="text-lg text-center font-medium text-slate-300">
-            Whether you're brainstorming with a team, catching up with friends,
-            or sharing passions in a community, Webuzz keeps the vibe alive
-          </p>
-        </div>
-        <Link to="/chat">
-          <button
-            className="group flex gap-3 items-center text-lg  text-slate-200 font-medium px-6 py-3 border border-blue-600 text-center bg-blue-600 rounded-full
-        hover:bg-blue-700"
-          >
-            Let's Buzz{" "}
-            <span>
-              <MoveRight
-                size={26}
-                className="group-hover:translate-x-2 transition-all duration-100"
-              />
-            </span>
-          </button>
-        </Link>
+    <div className=" min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-violet-950 via-indigo-950 to-indigo-950 text-white py-12">
+      {/* Hero Section */}
+      <div className="text-center mb-16 px-6">
+        <h1 className="text-5xl font-bold mb-4 tracking-wide">
+          Welcome to <span className="text-indigo-300">Webuzz</span>
+        </h1>
+        <p className="text-xl text-gray-300 mb-8 max-w-xl mx-auto">
+          Connect instantly with anyone — create private chats, group
+          conversations, and stay in sync in real time.
+        </p>
+        <button
+          onClick={handleStartChat}
+          className="bg-indigo-800 hover:bg-indigo-700 text-white font-semibold px-6 py-3 rounded-xl shadow-md transition-all"
+        >
+          Start Chatting
+        </button>
       </div>
+
+      {/* Features Section */}
+      <div className="grid grid-cols-1 md:grid-cols-2 mx-5 gap-8 max-w-4xl">
+        {features.map((feature, index) => (
+          <FeatureCard
+            key={index}
+            icon={feature.icon}
+            title={feature.title}
+            description={feature.description}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function FeatureCard({ icon, title, description }) {
+  return (
+    <div className="group cursor-pointer bg-indigo-900 p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all text-left">
+      <div className="mb-4 group-hover:bg-indigo-950  w-fit p-2 rounded">
+        {icon}
+      </div>
+      <h3 className="text-xl font-semibold mb-2">{title}</h3>
+      <p className="text-gray-300">{description}</p>
     </div>
   );
 }

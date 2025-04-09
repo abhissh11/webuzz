@@ -71,7 +71,7 @@ startServer();
 
 // ------------------ SOCKET.IO LOGIC ------------------
 
-const onlineUsers = new Map(); // userId => socket.id
+const onlineUsers = new Map();
 
 io.on("connection", (socket) => {
   console.log("A user connected:", socket.id);
@@ -99,7 +99,7 @@ io.on("connection", (socket) => {
     }
 
     // Send notification to receiver if online
-    if (receiver && onlineUsers.has(receiver)) {
+    if (receiver && receiver !== sender._id && onlineUsers.has(receiver)) {
       const receiverSocketId = onlineUsers.get(receiver);
 
       io.to(receiverSocketId).emit("notificationReceived", {

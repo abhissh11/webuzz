@@ -7,12 +7,28 @@ import Chatroom from "./pages/Chatroom";
 import Signin from "./pages/Signin";
 import Signup from "./pages/Signup";
 import ChatPage from "./pages/ChatPage";
+import { Toaster } from "react-hot-toast";
 
 export default function App() {
   return (
     <div className="">
       <Header />
-      <main className="mx-4">
+      <Toaster
+        position="top-right"
+        reverseOrder={false}
+        toastOptions={{
+          style: {
+            background: "#0d9488",
+            color: "#ffffff",
+            fontSize: "14px",
+            fontWeight: "500",
+            padding: "12px 16px",
+            borderRadius: "8px",
+          },
+          duration: 3000,
+        }}
+      />
+      <main className="">
         <Routes>
           <Route path="/" element={<HomePage />}></Route>
           <Route path="/chat" element={<Chatroom />}></Route>

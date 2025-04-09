@@ -1,14 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { axiosInstance } from "./../utils/constants";
-import {
-  MessageSquare,
-  Menu,
-  PanelTopOpen,
-  SquareChevronUp,
-} from "lucide-react";
+import { MessageSquare, PanelTopOpen, SquareChevronUp } from "lucide-react";
 import ChatUI from "../components/ChatUI";
 import socket from "../utils/socket";
 import { getLoggedInUser } from "../utils/getLoggedinUser";
+import UserListSkeleton from "../components/UserListSkeleton";
+import toast from "react-hot-toast";
 
 export default function Chatroom() {
   const [users, setUsers] = useState([]);
@@ -18,7 +15,8 @@ export default function Chatroom() {
   const [notifications, setNotifications] = useState([]);
   const [currentChat, setCurrentChat] = useState(null);
   const [messages, setMessages] = useState([]);
-  const [showUserList, setShowUserList] = useState(false); // false by default for mobile
+  const [showUserList, setShowUserList] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
 
   const loggedInUser = getLoggedInUser();
 
@@ -36,35 +34,100 @@ export default function Chatroom() {
         setLoading(false);
       }
     };
+
     fetchUsers();
   }, []);
 
   useEffect(() => {
     if (!loggedInUser?._id) return;
-    socket.emit("joinRoom", loggedInUser._id);
+
+    // Setup socket connection
+    socket.emit("setup", loggedInUser._id);
 
     const handleReceiveMessage = (newMessage) => {
-      if (!activeUser || newMessage.senderId !== activeUser._id) {
+      const sender = newMessage.sender || newMessage.senderId;
+
+      if (sender._id === loggedInUser._id) return;
+
+      if (!activeUser || sender._id !== activeUser._id) {
         setNotifications((prev) => [...prev, newMessage]);
+
+        toast(
+          `${sender.username || "New message"}: ${
+            newMessage.content?.message || newMessage.content
+          }`
+        );
+      }
+    };
+
+    const handleNotification = ({ from, chatId, content }) => {
+      if (from._id === loggedInUser._id) return;
+
+      if (!activeUser || from._id !== activeUser._id) {
+        setNotifications((prev) => [
+          ...prev,
+          { chatId, sender: from, content },
+        ]);
+
+        toast(`${from.username}: ${content.message || content}`);
       }
     };
 
     socket.on("messageReceived", handleReceiveMessage);
-    return () => socket.off("messageReceived", handleReceiveMessage);
+    socket.on("notificationReceived", handleNotification);
+
+    return () => {
+      socket.off("messageReceived", handleReceiveMessage);
+      socket.off("notificationReceived", handleNotification);
+    };
   }, [activeUser]);
+
+  useEffect(() => {
+    const handleTyping = ({ from, chatId }) => {
+      if (
+        activeUser &&
+        from === activeUser._id &&
+        chatId === currentChat?._id
+      ) {
+        setIsTyping(true);
+      }
+    };
+
+    const handleStopTyping = ({ from, chatId }) => {
+      if (
+        activeUser &&
+        from === activeUser._id &&
+        chatId === currentChat?._id
+      ) {
+        setIsTyping(false);
+      }
+    };
+
+    socket.on("typing", handleTyping);
+    socket.on("stopTyping", handleStopTyping);
+
+    return () => {
+      socket.off("typing", handleTyping);
+      socket.off("stopTyping", handleStopTyping);
+    };
+  }, [activeUser, currentChat]);
 
   const handleUserClick = async (user) => {
     try {
       const res = await axiosInstance.post("/chat", { userId: user._id });
       setCurrentChat(res.data);
       setActiveUser(user);
+      setIsTyping(false);
+
+      // Clear notifications for this chat
       setNotifications((prev) =>
         prev.filter((msg) => msg.chatId !== res.data._id)
       );
 
       const messagesRes = await axiosInstance.get(`/messages/${res.data._id}`);
       setMessages(messagesRes.data);
-      setShowUserList(false); // hide on mobile after selecting user
+
+      setShowUserList(false);
     } catch (error) {
       console.error("Error accessing chat:", error);
     }
@@ -96,7 +159,7 @@ export default function Chatroom() {
           Tap on user to start a chat
         </h2>
 
-        {loading && <p>Loading users..</p>}
+        {loading && <UserListSkeleton />}
         {error && (
           <p className="text-blue-300 text-sm font-semibold">{error}</p>
         )}
@@ -105,14 +168,14 @@ export default function Chatroom() {
         <div className="flex flex-col gap-2 w-full">
           {users.map((user) => {
             const hasNotification = notifications.some(
-              (msg) => msg.senderId === user._id
+              (msg) => msg.senderId === user._id || msg.sender?._id === user._id
             );
 
             return (
               <div
                 key={user._id}
                 onClick={() => handleUserClick(user)}
-                className={`relative flex items-center p-2 gap-4 cursor-pointer hover:bg-indigo-800 rounded-xl ${
+                className={`relative flex items-center p-2 gap-4 cursor-pointer border-b border-violet-900 hover:bg-indigo-800 rounded-t-lg ${
                   activeUser?._id === user._id ? "bg-indigo-800" : ""
                 }`}
               >
@@ -127,7 +190,7 @@ export default function Chatroom() {
                 </div>
 
                 {hasNotification && (
-                  <span className="absolute top-1 right-3 bg-red-600 text-white px-2 py-1 rounded-full text-xs">
+                  <span className="absolute top-1 right-3 bg-teal-600 text-white px-2 py-1 rounded-full text-xs">
                     New
                   </span>
                 )}
@@ -138,12 +201,13 @@ export default function Chatroom() {
       </div>
 
       {/* Chat UI */}
-      <div className="w-full md:w-[60%] border border-indigo-950 rounded-xl p-2 h-[90vh] overflow-hidden">
+      <div className="w-full md:w-[60%] border border-indigo-950 rounded-xl p-2 h-[95vh] overflow-hidden">
         <ChatUI
           activeUser={activeUser}
           currentChat={currentChat}
           messages={messages}
           setMessages={setMessages}
+          isTyping={isTyping}
         />
       </div>
     </div>
