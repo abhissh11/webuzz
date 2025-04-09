@@ -7,10 +7,8 @@ import {
 
 const router = express.Router();
 
-// ✅ Fetch messages between two users
 router.get("/:chatId", protect, getMesssages);
 
-// ✅ Send a message
 router.post("/", protect, sendMesssage);
 
 export default router;

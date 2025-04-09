@@ -15,7 +15,6 @@ dotenv.config();
 const app = express();
 const server = createServer(app);
 
-// Setup Socket.IO server
 const io = new Server(server, {
   cors: {
     origin: ["http://localhost:3000", "http://localhost:5173"],
@@ -52,7 +51,7 @@ app.use("/api/messages", messageRouter);
 
 const PORT = process.env.PORT || 5000;
 
-// MongoDB connection and server start
+// MongoDB and server start
 const startServer = async () => {
   try {
     await connectDB();
@@ -93,7 +92,6 @@ io.on("connection", (socket) => {
   socket.on("newMessage", (message) => {
     const { chat, sender, receiver, content } = message;
 
-    // Emit message to the chat room
     if (chat && chat._id) {
       io.to(chat._id).emit("messageReceived", message);
     }

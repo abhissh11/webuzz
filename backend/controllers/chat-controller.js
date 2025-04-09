@@ -24,7 +24,6 @@ export const accessChat = async (req, res) => {
       .populate("users", "-password")
       .populate("latestMessage");
 
-    // Populate latestMessage.sender properly
     isChat = await User.populate(isChat, {
       path: "latestMessage.sender",
       select: "name pic email",

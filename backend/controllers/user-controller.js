@@ -5,7 +5,6 @@ export const getUsers = async (req, res) => {
   try {
     const excludeId = req.query.exclude;
 
-    // const users = await User.find({}, "-password");
     const users = excludeId
       ? await User.find({ _id: { $ne: excludeId } }, "-password")
       : await User.find({}, "-password");
